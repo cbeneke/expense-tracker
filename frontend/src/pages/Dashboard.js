@@ -138,7 +138,17 @@ function Dashboard() {
                     {summary.recent_expenses.slice(0, 5).map((expense) => (
                       <TableRow key={expense.id}>
                         <TableCell>{format(new Date(expense.date), 'MMM d, yyyy')}</TableCell>
-                        <TableCell>{expense.budget.name}</TableCell>
+                        <TableCell>
+                          {expense.budget ? (
+                            expense.budget.name
+                          ) : expense.budget_id === null ? (
+                            'No Budget'
+                          ) : (
+                            <Typography color="text.disabled" component="span">
+                              {expense.budget_name} (Deleted)
+                            </Typography>
+                          )}
+                        </TableCell>
                         <TableCell>{expense.description}</TableCell>
                         <TableCell align="right">${expense.amount.toFixed(2)}</TableCell>
                       </TableRow>

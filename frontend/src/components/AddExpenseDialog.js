@@ -100,7 +100,7 @@ function AddExpenseDialog({ open, onClose, onExpenseAdded }) {
             </MenuItem>
             {availableBudgets.map((budget) => (
               <MenuItem key={budget.id} value={budget.id}>
-                {budget.category} (Available: ${(budget.amount - (budget.roll_over_amount || 0)).toFixed(2)})
+                {budget.name} (Available: ${(budget.amount - (budget.roll_over_amount || 0)).toFixed(2)})
               </MenuItem>
             ))}
           </TextField>

@@ -75,7 +75,7 @@ func (h *Handler) CreateExpense(c *gin.Context) {
 		UserID:      userID,
 		BudgetID:    input.BudgetID,
 		Amount:      input.Amount,
-		Category:    budget.Category,
+		BudgetName:  budget.Name,
 		Description: input.Description,
 		Date:        date,
 	}

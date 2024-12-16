@@ -29,8 +29,8 @@ func (h *Handler) GetBudgets(c *gin.Context) {
 
 func (h *Handler) CreateBudget(c *gin.Context) {
 	var input struct {
-		Category string  `json:"category" binding:"required"`
-		Amount   float64 `json:"amount" binding:"required"`
+		Name   string  `json:"name" binding:"required"`
+		Amount float64 `json:"amount" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -42,7 +42,7 @@ func (h *Handler) CreateBudget(c *gin.Context) {
 
 	budget := models.Budget{
 		UserID:         c.GetUint("user_id"),
-		Category:       input.Category,
+		Name:           input.Name,
 		Amount:         input.Amount,
 		Month:          currentMonth,
 		RollOverAmount: 0,
@@ -129,13 +129,13 @@ func (h *Handler) GetBudgetOverview(c *gin.Context) {
 }
 
 type BudgetOverview struct {
-	TotalBudget     float64                  `json:"total_budget"`
-	TotalExpenses   float64                  `json:"total_expenses"`
-	RemainingBudget float64                  `json:"remaining_budget"`
-	Categories      map[string]CategoryStats `json:"categories"`
+	TotalBudget     float64                `json:"total_budget"`
+	TotalExpenses   float64                `json:"total_expenses"`
+	RemainingBudget float64                `json:"remaining_budget"`
+	Budgets         map[string]BudgetStats `json:"budgets"`
 }
 
-type CategoryStats struct {
+type BudgetStats struct {
 	Budget    float64 `json:"budget"`
 	Spent     float64 `json:"spent"`
 	Remaining float64 `json:"remaining"`
@@ -144,28 +144,28 @@ type CategoryStats struct {
 
 func calculateBudgetOverview(budgets []models.Budget, expenses []models.Expense) BudgetOverview {
 	overview := BudgetOverview{
-		Categories: make(map[string]CategoryStats),
+		Budgets: make(map[string]BudgetStats),
 	}
 
-	// Initialize categories from budgets
+	// Initialize budgets
 	for _, budget := range budgets {
 		overview.TotalBudget += budget.Amount
-		overview.Categories[budget.Category] = CategoryStats{
+		overview.Budgets[budget.Name] = BudgetStats{
 			Budget: budget.Amount,
 		}
 	}
 
-	// Calculate expenses by category
+	// Calculate expenses by budget
 	for _, expense := range expenses {
 		overview.TotalExpenses += expense.Amount
-		stats := overview.Categories[expense.Category]
+		stats := overview.Budgets[expense.Budget.Name]
 		stats.Spent += expense.Amount
 		stats.Remaining = stats.Budget - stats.Spent
 		if stats.Remaining < 0 {
 			stats.Overrun = -stats.Remaining
 			stats.Remaining = 0
 		}
-		overview.Categories[expense.Category] = stats
+		overview.Budgets[expense.Budget.Name] = stats
 	}
 
 	overview.RemainingBudget = overview.TotalBudget - overview.TotalExpenses

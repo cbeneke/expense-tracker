@@ -29,7 +29,7 @@ function BudgetManagement() {
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState(null);
   const [formData, setFormData] = useState({
-    category: '',
+    name: '',
     amount: '',
   });
 
@@ -51,12 +51,12 @@ function BudgetManagement() {
   const handleOpenDialog = (budget = null) => {
     if (budget) {
       setFormData({
-        category: budget.category,
+        name: budget.name,
         amount: budget.amount.toString(),
       });
       setSelectedBudget(budget);
     } else {
-      setFormData({ category: '', amount: '' });
+      setFormData({ name: '', amount: '' });
       setSelectedBudget(null);
     }
     setOpenDialog(true);
@@ -65,7 +65,7 @@ function BudgetManagement() {
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setSelectedBudget(null);
-    setFormData({ category: '', amount: '' });
+    setFormData({ name: '', amount: '' });
   };
 
   const handleSubmit = async (e) => {
@@ -105,7 +105,7 @@ function BudgetManagement() {
       <CardContent>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
           <Typography variant="h6" component="div">
-            {budget.category}
+            {budget.name}
           </Typography>
           <Box>
             <Tooltip title="Edit">
@@ -180,10 +180,10 @@ function BudgetManagement() {
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
             <TextField
               fullWidth
-              label="Category"
-              value={formData.category}
+              label="Name"
+              value={formData.name}
               onChange={(e) =>
-                setFormData({ ...formData, category: e.target.value })
+                setFormData({ ...formData, name: e.target.value })
               }
               margin="normal"
               required

@@ -38,14 +38,18 @@ function ExpenseHistory() {
       field: 'budget',
       headerName: 'Budget',
       flex: 1,
-      valueGetter: (params) => {
+      renderCell: (params) => {
         if (params.row.budget) {
-          return params.row.budget.category;
+          return params.row.budget.name;
         }
         if (params.row.budget_id === null) {
           return 'No Budget';
         }
-        return 'Budget Deleted';
+        return (
+          <Typography color="text.disabled">
+            {params.row.budget_name} (Deleted)
+          </Typography>
+        );
       },
     },
     {
