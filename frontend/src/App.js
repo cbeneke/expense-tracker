@@ -25,78 +25,84 @@ const theme = createTheme({
   },
 });
 
+const AppContent = () => {
+  return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route
+        path="/"
+        element={
+          <PrivateRoute>
+            <Box sx={{ display: 'flex' }}>
+              <Navigation />
+              <Box
+                component="main"
+                sx={{
+                  flexGrow: 1,
+                  p: 3,
+                  bgcolor: 'background.default',
+                  minHeight: '100vh',
+                }}
+              >
+                <Dashboard />
+              </Box>
+            </Box>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/history"
+        element={
+          <PrivateRoute>
+            <Box sx={{ display: 'flex' }}>
+              <Navigation />
+              <Box
+                component="main"
+                sx={{
+                  flexGrow: 1,
+                  p: 3,
+                  bgcolor: 'background.default',
+                  minHeight: '100vh',
+                }}
+              >
+                <ExpenseHistory />
+              </Box>
+            </Box>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/budgets"
+        element={
+          <PrivateRoute>
+            <Box sx={{ display: 'flex' }}>
+              <Navigation />
+              <Box
+                component="main"
+                sx={{
+                  flexGrow: 1,
+                  p: 3,
+                  bgcolor: 'background.default',
+                  minHeight: '100vh',
+                }}
+              >
+                <BudgetManagement />
+              </Box>
+            </Box>
+          </PrivateRoute>
+        }
+      />
+    </Routes>
+  );
+};
+
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route
-            path="/"
-            element={
-              <PrivateRoute>
-                <Box sx={{ display: 'flex' }}>
-                  <Navigation />
-                  <Box
-                    component="main"
-                    sx={{
-                      flexGrow: 1,
-                      p: 3,
-                      bgcolor: 'background.default',
-                      minHeight: '100vh',
-                    }}
-                  >
-                    <Dashboard />
-                  </Box>
-                </Box>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/history"
-            element={
-              <PrivateRoute>
-                <Box sx={{ display: 'flex' }}>
-                  <Navigation />
-                  <Box
-                    component="main"
-                    sx={{
-                      flexGrow: 1,
-                      p: 3,
-                      bgcolor: 'background.default',
-                      minHeight: '100vh',
-                    }}
-                  >
-                    <ExpenseHistory />
-                  </Box>
-                </Box>
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/budgets"
-            element={
-              <PrivateRoute>
-                <Box sx={{ display: 'flex' }}>
-                  <Navigation />
-                  <Box
-                    component="main"
-                    sx={{
-                      flexGrow: 1,
-                      p: 3,
-                      bgcolor: 'background.default',
-                      minHeight: '100vh',
-                    }}
-                  >
-                    <BudgetManagement />
-                  </Box>
-                </Box>
-              </PrivateRoute>
-            }
-          />
-        </Routes>
+        <AppContent />
       </Router>
     </ThemeProvider>
   );

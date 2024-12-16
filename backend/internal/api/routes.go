@@ -8,16 +8,14 @@ import (
 func SetupRoutes(router *gin.Engine, db *gorm.DB) {
 	handler := NewHandler(db)
 
-	// Auth routes
-	auth := router.Group("/auth")
-	{
-		auth.POST("/signup", handler.SignUp)
-		auth.POST("/login", handler.Login)
-	}
+	// Auth routes (no middleware)
+	router.POST("/auth/login", handler.Login)
+	router.POST("/auth/signup", handler.SignUp)
+	router.GET("/auth/validate", handler.AuthMiddleware(), handler.ValidateToken)
 
 	// Protected routes
 	api := router.Group("/api")
-	api.Use(AuthMiddleware())
+	api.Use(handler.AuthMiddleware())
 	{
 		// Budget routes
 		api.GET("/budgets", handler.GetBudgets)

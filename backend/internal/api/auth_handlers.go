@@ -59,3 +59,8 @@ func (h *Handler) Login(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"token": token})
 }
+
+func (h *Handler) ValidateToken(c *gin.Context) {
+	// If the request reaches here, it means the auth middleware validated the token
+	c.JSON(http.StatusOK, gin.H{"valid": true})
+}

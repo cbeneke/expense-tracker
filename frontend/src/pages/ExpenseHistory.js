@@ -38,7 +38,15 @@ function ExpenseHistory() {
       field: 'budget',
       headerName: 'Budget',
       flex: 1,
-      valueGetter: (params) => params.row.budget?.category || params.row.category,
+      valueGetter: (params) => {
+        if (params.row.budget) {
+          return params.row.budget.category;
+        }
+        if (params.row.budget_id === null) {
+          return 'No Budget';
+        }
+        return 'Budget Deleted';
+      },
     },
     {
       field: 'amount',

@@ -11,6 +11,7 @@ import HistoryIcon from '@mui/icons-material/History';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { Box, Typography, Divider } from '@mui/material';
+import { auth } from '../services/api';
 
 const drawerWidth = 240;
 
@@ -19,8 +20,7 @@ function Navigation() {
   const location = useLocation();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
+    auth.logout();
   };
 
   const menuItems = [
