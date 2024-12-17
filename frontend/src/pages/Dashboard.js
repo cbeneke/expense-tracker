@@ -145,7 +145,7 @@ function Dashboard() {
                             'No Budget'
                           ) : (
                             <Typography color="text.disabled" component="span">
-                              {expense.budget_name} (Deleted)
+                              (Deleted)
                             </Typography>
                           )}
                         </TableCell>

@@ -75,7 +75,6 @@ func (h *Handler) CreateExpense(c *gin.Context) {
 		UserID:      userID,
 		BudgetID:    input.BudgetID,
 		Amount:      input.Amount,
-		BudgetName:  budget.Name,
 		Description: input.Description,
 		Date:        date,
 	}
@@ -95,7 +94,10 @@ func (h *Handler) CreateExpense(c *gin.Context) {
 	}
 
 	// Load the budget relationship for the response
-	h.db.Model(&expense).Association("Budget").Find(&expense.Budget)
+	if err := h.db.Model(&expense).Association("Budget").Find(&expense.Budget); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load budget association"})
+		return
+	}
 
 	c.JSON(http.StatusCreated, expense)
 }
@@ -187,7 +189,10 @@ func (h *Handler) UpdateExpense(c *gin.Context) {
 	}
 
 	// Load the budget relationship for the response
-	h.db.Model(&expense).Association("Budget").Find(&expense.Budget)
+	if err := h.db.Model(&expense).Association("Budget").Find(&expense.Budget); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load budget association"})
+		return
+	}
 
 	c.JSON(http.StatusOK, expense)
 }

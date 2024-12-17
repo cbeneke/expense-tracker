@@ -39,15 +39,15 @@ function ExpenseHistory() {
       headerName: 'Budget',
       flex: 1,
       renderCell: (params) => {
-        if (params.row.budget) {
-          return params.row.budget.name;
-        }
         if (params.row.budget_id === null) {
           return 'No Budget';
         }
+        if (params.row.budget) {
+          return params.row.budget.name;
+        }
         return (
           <Typography color="text.disabled">
-            {params.row.budget_name} (Deleted)
+            (Deleted)
           </Typography>
         );
       },
@@ -83,7 +83,7 @@ function ExpenseHistory() {
         autoHeight
         pageSizeOptions={[5, 10, 25]}
         initialState={{
-          pagination: { paginationModel: { pageSize: 10 } },
+          pagination: { paginationModel: { pageSize: 25 } },
         }}
         sx={{ mt: 2 }}
       />

@@ -11,7 +11,6 @@ type Expense struct {
 	UserID      uint           `gorm:"not null" json:"user_id"`
 	BudgetID    *uint          `json:"budget_id"`
 	Amount      float64        `gorm:"not null" json:"amount"`
-	BudgetName  string         `gorm:"not null" json:"budget_name"`
 	Description string         `gorm:"not null" json:"description"`
 	Date        time.Time      `gorm:"not null" json:"date"`
 	CreatedAt   time.Time      `json:"created_at"`

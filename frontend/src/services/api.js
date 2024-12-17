@@ -72,7 +72,7 @@ export const dashboard = {
             .reduce((sum, b) => sum + b.amount, 0);
 
         const totalExpenses = expenses
-            .reduce((sum, e) => sum + e.amount, 0);
+            .reduce((sum, e) => sum + e.budget_id ? e.amount : 0, 0);
 
         return {
             data: {

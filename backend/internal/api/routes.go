@@ -22,7 +22,6 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB) {
 		api.POST("/budgets", handler.CreateBudget)
 		api.PUT("/budgets/:id", handler.UpdateBudget)
 		api.DELETE("/budgets/:id", handler.DeleteBudget)
-		api.GET("/budgets/overview", handler.GetBudgetOverview)
 
 		// Expense routes
 		api.GET("/expenses", handler.GetExpenses)

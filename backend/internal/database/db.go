@@ -46,7 +46,7 @@ func InitDB() (*gorm.DB, error) {
 		return nil, fmt.Errorf("failed to connect to database: %v", err)
 	}
 
-	// Auto-migrate the schema
+	// Auto-migrate the schema - TODO(cbeneke): Handle schema changes in a ArgoCD pre-sync hook
 	err = db.AutoMigrate(&models.User{}, &models.Budget{}, &models.Expense{})
 	if err != nil {
 		log.Printf("Failed to migrate database: %v", err)
