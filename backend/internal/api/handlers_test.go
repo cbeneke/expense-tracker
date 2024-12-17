@@ -205,12 +205,3 @@ func TestCreateExpense(t *testing.T) {
 		})
 	}
 }
-
-// Helper function to create a test token
-func createTestToken(userID uint) (string, error) {
-	// You'll need to implement this based on your auth package
-	// Return a valid JWT token for testing
-	return "test-token", nil
-}
-
-// Add more test functions for other handlers...
