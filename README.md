@@ -93,7 +93,7 @@ JWT_SECRET=my-secret-key
 
 3. Start the application:
 ```bash
-docker-compose up -d
+docker-compose up -d --build
 ```
 
 The application will be available at:
