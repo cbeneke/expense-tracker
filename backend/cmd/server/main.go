@@ -2,6 +2,7 @@ package main
 
 import (
 	"expense-tracker/internal/api"
+	"expense-tracker/internal/config"
 	"expense-tracker/internal/database"
 	"expense-tracker/internal/handlers"
 	"log"
@@ -40,7 +41,7 @@ func main() {
 	api.SetupRoutes(router, db)
 
 	// Start server
-	if err := router.Run(":8080"); err != nil {
+	if err := router.Run(":" + config.Load().Port); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }
