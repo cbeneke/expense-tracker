@@ -43,7 +43,7 @@ jobs:
 
       - name: Run backend linter
         working-directory: backend
-        run: golangci-lint run ./...
+        run: golangci-lint run --timeout 10m ./...
 
       - name: Run backend tests
         working-directory: backend
