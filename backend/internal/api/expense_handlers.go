@@ -34,7 +34,7 @@ func (h *Handler) GetExpenses(c *gin.Context) {
 func (h *Handler) CreateExpense(c *gin.Context) {
 	var input struct {
 		Amount      float64 `json:"amount" binding:"required"`
-		BudgetID    uint    `json:"budget_id" binding:"required"`
+		BudgetID    *uint   `json:"budget_id"`
 		Description string  `json:"description" binding:"required"`
 		Date        string  `json:"date" binding:"required"`
 	}
@@ -54,24 +54,26 @@ func (h *Handler) CreateExpense(c *gin.Context) {
 	// Get the user ID from the context
 	userID := c.GetUint("user_id")
 
-	// Find the budget
-	var budget models.Budget
-	if err := h.db.Where("id = ? AND user_id = ?", input.BudgetID, userID).First(&budget).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Budget not found"})
-		return
-	}
+	var budget *models.Budget
+	if input.BudgetID != nil {
+		budget = &models.Budget{}
+		if err := h.db.Where("id = ? AND user_id = ?", input.BudgetID, userID).First(budget).Error; err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Budget not found"})
+			return
+		}
 
-	// Verify the expense date matches the budget month
-	expenseMonth := date.Format("2006-01")
-	if expenseMonth != budget.Month {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Expense date must be in the same month as the budget"})
-		return
+		// Verify the expense date matches the budget month
+		expenseMonth := date.Format("2006-01")
+		if expenseMonth != budget.Month {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Expense date must be in the same month as the budget"})
+			return
+		}
 	}
 
 	// Create the expense
 	expense := models.Expense{
 		UserID:      userID,
-		BudgetID:    budget.ID,
+		BudgetID:    input.BudgetID,
 		Amount:      input.Amount,
 		Description: input.Description,
 		Date:        date,
@@ -82,15 +84,20 @@ func (h *Handler) CreateExpense(c *gin.Context) {
 		return
 	}
 
-	// Update the budget's roll-over amount
-	budget.RollOverAmount += input.Amount
-	if err := h.db.Save(&budget).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update budget"})
-		return
+	if budget != nil {
+		// Update the budget's roll-over amount
+		budget.RollOverAmount += input.Amount
+		if err := h.db.Save(budget).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update budget"})
+			return
+		}
 	}
 
 	// Load the budget relationship for the response
-	h.db.Model(&expense).Association("Budget").Find(&expense.Budget)
+	if err := h.db.Model(&expense).Association("Budget").Find(&expense.Budget); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load budget association"})
+		return
+	}
 
 	c.JSON(http.StatusCreated, expense)
 }
@@ -101,7 +108,7 @@ func (h *Handler) UpdateExpense(c *gin.Context) {
 
 	var input struct {
 		Amount      float64 `json:"amount"`
-		BudgetID    uint    `json:"budget_id"`
+		BudgetID    *uint   `json:"budget_id"`
 		Description string  `json:"description"`
 		Date        string  `json:"date"`
 	}
@@ -118,17 +125,19 @@ func (h *Handler) UpdateExpense(c *gin.Context) {
 	}
 
 	// If budget is being changed, update both old and new budgets
-	if input.BudgetID != 0 && input.BudgetID != expense.BudgetID {
+	if input.BudgetID != nil && (expense.BudgetID == nil || *input.BudgetID != *expense.BudgetID) {
 		// Update old budget
-		var oldBudget models.Budget
-		if err := h.db.First(&oldBudget, expense.BudgetID).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find old budget"})
-			return
-		}
-		oldBudget.RollOverAmount -= expense.Amount
-		if err := h.db.Save(&oldBudget).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update old budget"})
-			return
+		if expense.BudgetID != nil {
+			var oldBudget models.Budget
+			if err := h.db.First(&oldBudget, expense.BudgetID).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find old budget"})
+				return
+			}
+			oldBudget.RollOverAmount -= expense.Amount
+			if err := h.db.Save(&oldBudget).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update old budget"})
+				return
+			}
 		}
 
 		// Update new budget
@@ -180,7 +189,10 @@ func (h *Handler) UpdateExpense(c *gin.Context) {
 	}
 
 	// Load the budget relationship for the response
-	h.db.Model(&expense).Association("Budget").Find(&expense.Budget)
+	if err := h.db.Model(&expense).Association("Budget").Find(&expense.Budget); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load budget association"})
+		return
+	}
 
 	c.JSON(http.StatusOK, expense)
 }

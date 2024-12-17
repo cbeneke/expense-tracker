@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
-const ExpenseForm = ({ expense, onSubmit, onCancel, categories }) => {
+const ExpenseForm = ({ expense, onSubmit, onCancel, budgets }) => {
   const [formData, setFormData] = useState({
-    category: '',
+    budget: '',
     amount: '',
     description: '',
     date: new Date().toISOString().split('T')[0],
@@ -11,7 +11,7 @@ const ExpenseForm = ({ expense, onSubmit, onCancel, categories }) => {
   useEffect(() => {
     if (expense) {
       setFormData({
-        category: expense.category,
+        budget: expense.budget.id,
         amount: expense.amount.toString(),
         description: expense.description || '',
         date: new Date(expense.date).toISOString().split('T')[0],
@@ -32,20 +32,20 @@ const ExpenseForm = ({ expense, onSubmit, onCancel, categories }) => {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-gray-700">
-          Category
+          Budget
         </label>
         <select
-          value={formData.category}
+          value={formData.budget}
           onChange={(e) =>
-            setFormData({ ...formData, category: e.target.value })
+            setFormData({ ...formData, budget: e.target.value })
           }
           required
           className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
         >
-          <option value="">Select a category</option>
-          {categories.map((category) => (
-            <option key={category} value={category}>
-              {category}
+          <option value="">Select a budget</option>
+          {budgets.map((budget) => (
+            <option key={budget.id} value={budget.id}>
+              {budget.name}
             </option>
           ))}
         </select>

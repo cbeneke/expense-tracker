@@ -10,7 +10,7 @@ A full-stack application for tracking personal expenses and managing budgets. Bu
   - JWT-based session management
 
 - **Budget Management**
-  - Create and manage monthly budgets by category
+  - Create and manage monthly budgets by budget
   - Support for budget rollover or reset each month
   - Track budget overruns and remaining amounts
 
@@ -22,7 +22,7 @@ A full-stack application for tracking personal expenses and managing budgets. Bu
 
 - **Reporting & Analytics**
   - Monthly overview of budgets vs. expenses
-  - Category-wise breakdown
+  - Budget-wise breakdown
   - Historical expense data
   - Export data in CSV or JSON formats
 
@@ -93,7 +93,7 @@ JWT_SECRET=my-secret-key
 
 3. Start the application:
 ```bash
-docker-compose up -d
+docker-compose up -d --build
 ```
 
 The application will be available at:

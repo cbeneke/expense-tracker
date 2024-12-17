@@ -11,6 +11,7 @@ type User struct {
 	Email        string         `gorm:"unique;not null" json:"email"`
 	PasswordHash string         `gorm:"not null" json:"-"`
 	CreatedAt    time.Time      `json:"created_at"`
+	ActivatedAt  *time.Time     `json:"activated_at,omitempty"`
 	UpdatedAt    time.Time      `json:"updated_at"`
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
 }

@@ -1,5 +1,5 @@
-# Build stage
-FROM node:20-alpine AS build
+# Base stage
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -11,15 +11,15 @@ RUN npm ci
 COPY . .
 
 # Development stage
-FROM build AS development
+FROM builder AS development
 CMD ["npm", "start"]
 
 # Build the application
-FROM build AS production
+FROM builder AS build
 RUN npm run build
 
 # Production stage
-FROM nginx:alpine
+FROM nginx:alpine AS production
 
 # Copy the build output
 COPY --from=build /app/build /usr/share/nginx/html

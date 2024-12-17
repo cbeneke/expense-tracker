@@ -11,7 +11,7 @@ const ExpenseList = ({ expenses, onDelete, onEdit }) => {
               Date
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Category
+              Budget
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Amount
@@ -30,7 +30,7 @@ const ExpenseList = ({ expenses, onDelete, onEdit }) => {
               <td className="px-6 py-4 whitespace-nowrap">
                 {format(new Date(expense.date), 'MMM d, yyyy')}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap">{expense.category}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{expense.budget.name}</td>
               <td className="px-6 py-4 whitespace-nowrap">
                 ${expense.amount.toFixed(2)}
               </td>

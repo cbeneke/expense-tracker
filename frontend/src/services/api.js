@@ -16,18 +16,25 @@ const authApi = axios.create({
     },
 });
 
-
-api.interceptors.request.use((config) => {
+const addAuthHeader = (config) => {
     const token = localStorage.getItem('token');
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
-});
+};
+
+api.interceptors.request.use(addAuthHeader);
+authApi.interceptors.request.use(addAuthHeader);
 
 export const auth = {
     login: (credentials) => authApi.post('/login', credentials),
     register: (userData) => authApi.post('/signup', userData),
+    validate: () => authApi.get('/validate'),
+    logout: () => {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+    },
 };
 
 export const expenses = {
@@ -35,7 +42,7 @@ export const expenses = {
     getById: (id) => api.get(`/expenses/${id}`),
     create: (expense) => api.post('/expenses', {
         ...expense,
-        budget_id: parseInt(expense.budget),
+        budget_id: expense.budget ? parseInt(expense.budget) : null,
     }),
     update: (id, expense) => api.put(`/expenses/${id}`, expense),
     delete: (id) => api.delete(`/expenses/${id}`),
@@ -65,7 +72,7 @@ export const dashboard = {
             .reduce((sum, b) => sum + b.amount, 0);
 
         const totalExpenses = expenses
-            .reduce((sum, e) => sum + e.amount, 0);
+            .reduce((sum, e) => sum + e.budget_id ? e.amount : 0, 0);
 
         return {
             data: {
@@ -78,5 +85,16 @@ export const dashboard = {
         };
     },
 };
+
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+        }
+        return Promise.reject(error);
+    }
+);
 
 export default api; 

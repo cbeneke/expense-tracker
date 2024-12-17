@@ -92,13 +92,15 @@ function AddExpenseDialog({ open, onClose, onExpenseAdded }) {
             onChange={(e) =>
               setFormData({ ...formData, budget: e.target.value })
             }
-            required
             margin="normal"
-            helperText="Select from your existing budgets"
+            helperText="Select from your existing budgets (optional)"
           >
+            <MenuItem value="">
+              <em>No Budget</em>
+            </MenuItem>
             {availableBudgets.map((budget) => (
               <MenuItem key={budget.id} value={budget.id}>
-                {budget.category} (Available: ${(budget.amount - (budget.roll_over_amount || 0)).toFixed(2)})
+                {budget.name} (Available: ${(budget.amount - (budget.roll_over_amount || 0)).toFixed(2)})
               </MenuItem>
             ))}
           </TextField>

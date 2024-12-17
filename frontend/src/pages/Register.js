@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../services/api';
 import {
@@ -20,6 +20,21 @@ function Register() {
     confirmPassword: '',
   });
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const checkToken = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          await auth.validate();
+          navigate('/');
+        } catch (err) {
+          localStorage.removeItem('token');
+        }
+      }
+    };
+    checkToken();
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
