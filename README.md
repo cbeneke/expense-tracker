@@ -71,7 +71,7 @@ A full-stack application for tracking personal expenses and managing budgets. Bu
 
 ### Prerequisites
 - Docker and Docker Compose
-- Go 1.22 or later (for local development)
+- Go 1.23 or later (for local development)
 - Node.js 20 or later (for local development)
 - PostgreSQL 16 or later
 

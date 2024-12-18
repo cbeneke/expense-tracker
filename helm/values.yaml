@@ -12,9 +12,12 @@ ingress:
 
 frontend:
   image:
-    repository: expense-tracker-frontend
+    repository: cbeneke/expense-tracker-frontend
     tag: latest
     pullPolicy: IfNotPresent
+    platforms:
+      - linux/amd64
+      - linux/arm64
   replicaCount: 2
   resources:
     requests:
@@ -32,9 +35,12 @@ frontend:
 
 backend:
   image:
-    repository: expense-tracker-backend
+    repository: cbeneke/expense-tracker-backend
     tag: latest
     pullPolicy: IfNotPresent
+    platforms:
+      - linux/amd64
+      - linux/arm64
   replicaCount: 2
   resources:
     requests:
@@ -57,6 +63,9 @@ postgresql:
     repository: postgres
     tag: "16-alpine"
     pullPolicy: IfNotPresent
+    platforms:
+      - linux/amd64
+      - linux/arm64
   
   # Database configuration
   database: expense_tracker
