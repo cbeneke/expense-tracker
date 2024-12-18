@@ -50,7 +50,7 @@ func (b *Budget) GetOrCreateMonthBudget(db *gorm.DB, month string) (*MonthBudget
 }
 
 func (b *Budget) ReconcileRollover(db *gorm.DB) error {
-	if !b.RollOver {
+	if b.RollOver == false {
 		return nil
 	}
 

@@ -31,7 +31,7 @@ func (h *Handler) CreateBudget(c *gin.Context) {
 	var input struct {
 		Name     string  `json:"name" binding:"required"`
 		Amount   float64 `json:"amount" binding:"required"`
-		RollOver bool    `json:"roll_over" binding:"required"`
+		RollOver *bool   `json:"roll_over" binding:"required"` // https://github.com/gin-gonic/gin/issues/814
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -43,7 +43,7 @@ func (h *Handler) CreateBudget(c *gin.Context) {
 		UserID:   int64(c.GetUint("user_id")),
 		Name:     input.Name,
 		Amount:   input.Amount,
-		RollOver: input.RollOver,
+		RollOver: *input.RollOver,
 	}
 
 	if err := h.db.Create(&budget).Error; err != nil {

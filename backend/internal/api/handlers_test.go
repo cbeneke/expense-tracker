@@ -116,16 +116,27 @@ func TestCreateBudget(t *testing.T) {
 		{
 			name: "valid budget",
 			input: map[string]interface{}{
-				"name":   "Groceries",
-				"amount": 500.00,
+				"name":      "Groceries",
+				"amount":    500.00,
+				"roll_over": false,
+			},
+			wantStatus: http.StatusCreated,
+		},
+		{
+			name: "valid rollover budget",
+			input: map[string]interface{}{
+				"name":      "Groceries",
+				"amount":    500.00,
+				"roll_over": true,
 			},
 			wantStatus: http.StatusCreated,
 		},
 		{
 			name: "invalid amount",
 			input: map[string]interface{}{
-				"name":   "Groceries",
-				"amount": "invalid",
+				"name":      "Groceries",
+				"amount":    "invalid",
+				"roll_over": false,
 			},
 			wantStatus: http.StatusBadRequest,
 		},
