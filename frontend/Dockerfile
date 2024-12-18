@@ -17,6 +17,7 @@ CMD ["npm", "start"]
 # Build the application
 FROM builder AS build
 RUN npm run build
+RUN npx react-inject-env set
 
 # Production stage
 FROM nginx:alpine AS production
