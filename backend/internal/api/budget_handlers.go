@@ -29,8 +29,9 @@ func (h *Handler) GetBudgets(c *gin.Context) {
 
 func (h *Handler) CreateBudget(c *gin.Context) {
 	var input struct {
-		Name   string  `json:"name" binding:"required"`
-		Amount float64 `json:"amount" binding:"required"`
+		Name     string  `json:"name" binding:"required"`
+		Amount   float64 `json:"amount" binding:"required"`
+		RollOver *bool   `json:"roll_over" binding:"required"` // https://github.com/gin-gonic/gin/issues/685
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -38,14 +39,11 @@ func (h *Handler) CreateBudget(c *gin.Context) {
 		return
 	}
 
-	currentMonth := time.Now().Format("2006-01")
-
 	budget := models.Budget{
-		UserID:         c.GetUint("user_id"),
-		Name:           input.Name,
-		Amount:         input.Amount,
-		Month:          currentMonth,
-		RollOverAmount: 0,
+		UserID:   int64(c.GetUint("user_id")),
+		Name:     input.Name,
+		Amount:   input.Amount,
+		RollOver: *input.RollOver,
 	}
 
 	if err := h.db.Create(&budget).Error; err != nil {
@@ -61,8 +59,8 @@ func (h *Handler) UpdateBudget(c *gin.Context) {
 	budgetID := c.Param("id")
 
 	var input struct {
-		Amount         float64 `json:"amount"`
-		RollOverAmount float64 `json:"roll_over_amount"`
+		Name   string  `json:"name"`
+		Amount float64 `json:"amount"`
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -76,11 +74,35 @@ func (h *Handler) UpdateBudget(c *gin.Context) {
 		return
 	}
 
-	budget.Amount = input.Amount
-	budget.RollOverAmount = input.RollOverAmount
+	// Start a transaction
+	tx := h.db.Begin()
 
-	if err := h.db.Save(&budget).Error; err != nil {
+	// Update the main budget
+	budget.Name = input.Name
+	budget.Amount = input.Amount
+
+	if err := tx.Save(&budget).Error; err != nil {
+		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update budget"})
+		return
+	}
+
+	// Update month budgets
+	currentTime := time.Now()
+	query := tx.Model(&models.MonthBudget{}).Where("budget_id = ? AND month >= ?", budget.ID, currentTime.Format("2006-01"))
+
+	// Update the amount for all relevant month budgets
+	if err := query.Updates(map[string]interface{}{
+		"amount": budget.Amount,
+	}).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update month budgets"})
+		return
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to commit transaction"})
 		return
 	}
 
