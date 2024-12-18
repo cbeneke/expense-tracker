@@ -47,6 +47,7 @@ jobs:
         with:
           version: v1.60
           working-directory: backend
+          args: --timeout=30m
 
       - name: Run backend tests
         working-directory: backend
