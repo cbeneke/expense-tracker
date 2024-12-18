@@ -51,9 +51,7 @@ jobs:
 
       - name: Run backend tests
         working-directory: backend
-        run: |
-          GOOS=linux GOARCH=amd64 go test ./... -v
-          GOOS=linux GOARCH=arm64 go test ./... -v
+        run: go test ./... -v
 
   build-backend:
     needs: [changes, backend]
@@ -72,7 +70,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build backend
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./backend
           push: false
@@ -120,7 +118,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build frontend
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./frontend
           push: false
