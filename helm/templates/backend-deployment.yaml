@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/name: {{ $.Release.Name }}
     app.kubernetes.io/component: backend
 spec:
-  replicas: {{ .Values.backend.replicaCount }}
+  replicas: {{ $.Values.backend.replicaCount }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ $.Release.Name }}
@@ -19,29 +19,29 @@ spec:
     spec:
       containers:
         - name: backend
-          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
-          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          image: "{{ $.Values.backend.image.repository }}:{{ $.Values.backend.image.tag }}"
+          imagePullPolicy: {{ $.Values.backend.image.pullPolicy }}
           ports:
             - name: http
               containerPort: 8080
           resources:
-            {{- toYaml .Values.backend.resources | nindent 12 }}
+            {{- toYaml $.Values.backend.resources | nindent 12 }}
           env:
             - name: DB_HOST
-              {{- if .Values.postgresql.enabled }}
-              value: {{ .Release.Name }}-postgresql
+              {{- if $.Values.postgresql.enabled }}
+              value: {{ $.Release.Name }}-postgresql
               {{- else }}
-              value: {{ .Values.postgresql.external.host }}
+              value: {{ $.Values.postgresql.external.host }}
               {{- end }}
             - name: DB_PORT
-              {{- if .Values.postgresql.enabled }}
+              {{- if $.Values.postgresql.enabled }}
               value: "5432"
               {{- else }}
-              value: {{ .Values.postgresql.external.port | quote }}
+              value: {{ $.Values.postgresql.external.port | quote }}
               {{- end }}
             - name: DB_NAME
-              value: {{ .Values.postgresql.database }}
+              value: {{ $.Values.postgresql.database }}
             - name: DB_USER
-              value: {{ .Values.postgresql.username }}
+              value: {{ $.Values.postgresql.username }}
             - name: DB_PASSWORD
               value: {{ .Values.postgresql.password }}

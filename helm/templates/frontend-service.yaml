@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/component: frontend
 spec:
   selector:
-    app.kubernetes.io/name: expense-tracker
+    app.kubernetes.io/name: {{ $.Release.Name }}
     app.kubernetes.io/component: frontend
   ports:
     - protocol: TCP

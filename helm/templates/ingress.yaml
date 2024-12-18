@@ -7,19 +7,19 @@ metadata:
     app.kubernetes.io/name: {{ $.Release.Name }}
     app.kubernetes.io/component: ingress
   annotations:
-    {{- toYaml .Values.ingress.annotations | nindent 4 }}
+    {{- toYaml $.Values.ingress.annotations | nindent 4 }}
 spec:
-  ingressClassName: {{ .Values.ingress.className }}
-  {{- if .Values.ingress.tls.enabled }}
+  ingressClassName: {{ $.Values.ingress.className }}
+  {{- if $.Values.ingress.tls.enabled }}
   tls:
     - hosts:
-        {{- range .Values.ingress.hosts }}
+        {{- range $.Values.ingress.hosts }}
         - {{ . | quote }}
         {{- end }}
-      secretName: {{ .Values.ingress.tls.secretName }}
+      secretName: {{ $.Values.ingress.tls.secretName }}
   {{- end }}
   rules:
-    {{- range .Values.ingress.hosts }}
+    {{- range $.Values.ingress.hosts }}
     - host: {{ . | quote }}
       http:
         paths:
@@ -27,7 +27,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: frontend
+                name: {{ $.Release.Name }}-frontend
                 port:
                   name: http
     {{- end }}

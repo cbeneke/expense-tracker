@@ -1,7 +1,7 @@
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: {{ $.Release.Name }}- backend
+  name: {{ $.Release.Name }}-backend
   labels:
     app.kubernetes.io/name: {{ $.Release.Name }}
     app.kubernetes.io/component: backend

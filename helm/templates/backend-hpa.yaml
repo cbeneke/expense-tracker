@@ -12,19 +12,19 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: {{ $.Release.Name }}-backend
-  minReplicas: {{ .Values.backend.autoscaling.minReplicas }}
-  maxReplicas: {{ .Values.backend.autoscaling.maxReplicas }}
+  minReplicas: {{ $.Values.backend.autoscaling.minReplicas }}
+  maxReplicas: {{ $.Values.backend.autoscaling.maxReplicas }}
   metrics:
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: {{ .Values.backend.autoscaling.targetCPUUtilizationPercentage }}
+          averageUtilization: {{ $.Values.backend.autoscaling.targetCPUUtilizationPercentage }}
     - type: Resource
       resource:
         name: memory
         target:
           type: Utilization
-          averageUtilization: {{ .Values.backend.autoscaling.targetMemoryUtilizationPercentage }}
+          averageUtilization: {{ $.Values.backend.autoscaling.targetMemoryUtilizationPercentage }}
 {{- end }}

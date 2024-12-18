@@ -11,7 +11,7 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ $.Release.Name }}
-        app.kubernetes.io/component: postgresql
+      app.kubernetes.io/component: postgresql
   template:
     metadata:
       labels:
@@ -20,28 +20,28 @@ spec:
     spec:
       containers:
         - name: postgresql
-          image: "{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}"
-          imagePullPolicy: {{ .Values.postgresql.image.pullPolicy }}
+          image: "{{ $.Values.postgresql.image.repository }}:{{ $.Values.postgresql.image.tag }}"
+          imagePullPolicy: {{ $.Values.postgresql.image.pullPolicy }}
           env:
             - name: POSTGRES_DB
-              value: {{ .Values.postgresql.database }}
+              value: {{ $.Values.postgresql.database }}
             - name: POSTGRES_USER
-              value: {{ .Values.postgresql.username }}
+              value: {{ $.Values.postgresql.username }}
             - name: POSTGRES_PASSWORD
-              value: {{ .Values.postgresql.password }}
+              value: {{ $.Values.postgresql.password }}
           ports:
             - containerPort: 5432
               name: postgresql
           resources:
-            {{- toYaml .Values.postgresql.resources | nindent 12 }}
+            {{- toYaml $.Values.postgresql.resources | nindent 12 }}
           volumeMounts:
             - name: postgresql-data
               mountPath: /var/lib/postgresql/data
       volumes:
         - name: postgresql-data
-          {{- if .Values.postgresql.persistence.enabled }}
+          {{- if $.Values.postgresql.persistence.enabled }}
           persistentVolumeClaim:
-            claimName: {{ .Release.Name }}-postgresql
+            claimName: {{ $.Release.Name }}-postgresql
           {{- else }}
           emptyDir: {}
           {{- end }}
