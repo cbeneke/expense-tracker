@@ -11,7 +11,7 @@ frontend:
   image:
     repository: cbeneke/expense-tracker-frontend
     tag: latest
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
     platforms:
       - linux/amd64
       - linux/arm64
@@ -34,7 +34,7 @@ backend:
   image:
     repository: cbeneke/expense-tracker-backend
     tag: latest
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
     platforms:
       - linux/amd64
       - linux/arm64
@@ -63,7 +63,7 @@ postgresql:
     platforms:
       - linux/amd64
       - linux/arm64
-  
+
   # Database configuration
   database: expense_tracker
   username: postgres
@@ -73,7 +73,7 @@ postgresql:
   external:
     host: ""
     port: 5432
-    
+
   # Resource configuration for postgres
   resources:
     requests:
@@ -82,7 +82,7 @@ postgresql:
     limits:
       memory: "512Mi"
       cpu: "500m"
-      
+
   persistence:
     enabled: true
     size: 10Gi
