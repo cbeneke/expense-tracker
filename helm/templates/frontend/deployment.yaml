@@ -25,4 +25,4 @@ spec:
             - name: http
               containerPort: 80
           resources:
-            {{- toYaml $.Values.frontend.resources | nindent 12 }} 
+            {{- toYaml $.Values.frontend.resources | nindent 12 }}

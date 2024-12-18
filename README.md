@@ -96,9 +96,7 @@ JWT_SECRET=my-secret-key
 docker-compose up -d --build
 ```
 
-The application will be available at:
-- Frontend: http://localhost:80
-- Backend API: http://localhost:8080
+The application will be available at http://localhost:80
 
 View the logs:
 ```bash

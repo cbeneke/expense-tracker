@@ -1,4 +1,18 @@
 services:
+  traefik:
+    image: traefik:v2.10
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - expense-network
+
   frontend:
     build:
       context: ./frontend
@@ -8,13 +22,15 @@ services:
       - "3000:3000"
     depends_on:
       - backend
-    environment:
-      - REACT_APP_API_URL=http://localhost:8080
     volumes:
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public
     networks:
       - expense-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=PathPrefix(`/`) && !PathPrefix(`/api`) && !PathPrefix(`/auth`)"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
 
   backend:
     build:
@@ -36,6 +52,10 @@ services:
       - ./backend:/app
     networks:
       - expense-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=PathPrefix(`/api`) || PathPrefix(`/auth`)"
+      - "traefik.http.services.backend.loadbalancer.server.port=8080"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 10s
@@ -65,4 +85,4 @@ volumes:
 
 networks:
   expense-network:
-    driver: bridge 
+    driver: bridge
