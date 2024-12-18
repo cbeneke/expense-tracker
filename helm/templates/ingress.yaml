@@ -5,22 +5,20 @@ metadata:
   name: {{ $.Release.Name }}
   labels:
     app.kubernetes.io/name: {{ $.Release.Name }}
-    app.kubernetes.io/component: ingress
+{{- if $.Values.ingress.annotations }}
   annotations:
     {{- toYaml $.Values.ingress.annotations | nindent 4 }}
+{{- end }}
 spec:
   ingressClassName: {{ $.Values.ingress.className }}
   {{- if $.Values.ingress.tls.enabled }}
   tls:
     - hosts:
-        {{- range $.Values.ingress.hosts }}
-        - {{ . | quote }}
-        {{- end }}
+        - {{ $.Values.ingress.host | quote }}
       secretName: {{ $.Values.ingress.tls.secretName }}
   {{- end }}
   rules:
-    {{- range $.Values.ingress.hosts }}
-    - host: {{ . | quote }}
+    - host: {{ $.Values.ingress.host | quote }}
       http:
         paths:
           - path: /
@@ -30,7 +28,7 @@ spec:
                 name: {{ $.Release.Name }}-frontend
                 port:
                   name: http
-    - host: {{ . | quote }}
+    - host: {{ $.Values.ingress.host | quote }}
       http:
         paths:
           - path: /auth
@@ -40,7 +38,7 @@ spec:
                 name: {{ $.Release.Name }}-backend
                 port:
                   name: http
-    - host: {{ . | quote }}
+    - host: {{ $.Values.ingress.host | quote }}
       http:
         paths:
           - path: /api
@@ -50,5 +48,4 @@ spec:
                 name: {{ $.Release.Name }}-backend
                 port:
                   name: http
-    {{- end }}
 {{- end }} 

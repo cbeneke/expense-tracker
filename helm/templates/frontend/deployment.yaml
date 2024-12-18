@@ -24,5 +24,8 @@ spec:
           ports:
             - name: http
               containerPort: 80
+          env:
+            - name: REACT_APP_API_URL
+              value: {{ $.Values.ingress.host }}
           resources:
             {{- toYaml $.Values.frontend.resources | nindent 12 }} 

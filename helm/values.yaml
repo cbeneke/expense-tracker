@@ -1,11 +1,8 @@
 ingress:
   enabled: true
   className: nginx
-  annotations:
-    kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-  hosts:
-    - expense-tracker.example.com
+  annotations: {}
+  host: expense-tracker.example.com
   tls:
     enabled: true
     secretName: expense-tracker-tls
