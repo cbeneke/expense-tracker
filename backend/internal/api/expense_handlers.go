@@ -34,7 +34,7 @@ func (h *Handler) GetExpenses(c *gin.Context) {
 func (h *Handler) CreateExpense(c *gin.Context) {
 	var input struct {
 		Amount      float64 `json:"amount" binding:"required"`
-		BudgetID    *uint   `json:"budget_id"`
+		BudgetID    uint    `json:"budget_id" binding:"required"`
 		Description string  `json:"description" binding:"required"`
 		Date        string  `json:"date" binding:"required"`
 	}
@@ -54,29 +54,32 @@ func (h *Handler) CreateExpense(c *gin.Context) {
 	// Get the user ID from the context
 	userID := c.GetUint("user_id")
 
-	var budget *models.Budget
-	if input.BudgetID != nil {
-		budget = &models.Budget{}
-		if err := h.db.Where("id = ? AND user_id = ?", input.BudgetID, userID).First(budget).Error; err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Budget not found"})
-			return
-		}
+	budget := &models.Budget{}
+	if err := h.db.Where("id = ? AND user_id = ?", input.BudgetID, userID).First(budget).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Budget not found"})
+		return
+	}
 
-		// Verify the expense date matches the budget month
-		expenseMonth := date.Format("2006-01")
-		if expenseMonth != budget.Month {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Expense date must be in the same month as the budget"})
-			return
-		}
+	monthBudget, err := budget.GetOrCreateMonthBudget(h.db, date.Format("2006-01"))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get or create month budget"})
+		return
+	}
+
+	// Verify the expense date matches the budget month
+	expenseMonth := date.Format("2006-01")
+	if expenseMonth != monthBudget.Month {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Expense date must be in the same month as the budget"})
+		return
 	}
 
 	// Create the expense
 	expense := models.Expense{
-		UserID:      userID,
-		BudgetID:    input.BudgetID,
-		Amount:      input.Amount,
-		Description: input.Description,
-		Date:        date,
+		UserID:        userID,
+		MonthBudgetID: input.BudgetID,
+		Amount:        input.Amount,
+		Description:   input.Description,
+		Date:          date,
 	}
 
 	if err := h.db.Create(&expense).Error; err != nil {
@@ -84,19 +87,19 @@ func (h *Handler) CreateExpense(c *gin.Context) {
 		return
 	}
 
-	if budget != nil {
-		// Update the budget's roll-over amount
-		budget.RollOverAmount += input.Amount
-		if err := h.db.Save(budget).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update budget"})
-			return
-		}
+	// Update the month budget's used amount
+	monthBudget.UsedAmount += input.Amount
+	if err := h.db.Save(monthBudget).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update month budget"})
+		return
 	}
 
-	// Load the budget relationship for the response
-	if err := h.db.Model(&expense).Association("Budget").Find(&expense.Budget); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load budget association"})
-		return
+	// Reconcile rollover for historic budgets
+	if monthBudget.Month != time.Now().Format("2006-01") {
+		if err := budget.ReconcileRollover(h.db); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to reconcile rollover"})
+			return
+		}
 	}
 
 	c.JSON(http.StatusCreated, expense)
@@ -125,53 +128,81 @@ func (h *Handler) UpdateExpense(c *gin.Context) {
 	}
 
 	// If budget is being changed, update both old and new budgets
-	if input.BudgetID != nil && (expense.BudgetID == nil || *input.BudgetID != *expense.BudgetID) {
-		// Update old budget
-		if expense.BudgetID != nil {
-			var oldBudget models.Budget
-			if err := h.db.First(&oldBudget, expense.BudgetID).Error; err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find old budget"})
+	if input.BudgetID != nil {
+		tx := h.db.Begin()
+
+		newBudget := &models.Budget{}
+		if err := tx.Where("id = ? AND user_id = ?", input.BudgetID, userID).First(newBudget).Error; err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Budget not found"})
+			tx.Rollback()
+			return
+		}
+
+		expense.MonthBudget.UsedAmount -= expense.Amount
+		if err := tx.Save(expense.MonthBudget).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update old month budget"})
+			tx.Rollback()
+			return
+		}
+
+		// Date changes are handled later in the code
+		newMonthBudget, err := newBudget.GetOrCreateMonthBudget(h.db, expense.Date.Format("2006-01"))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get or create month budget"})
+			tx.Rollback()
+			return
+		}
+		newMonthBudget.UsedAmount += expense.Amount
+		if err := tx.Save(newMonthBudget).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update old month budget"})
+			tx.Rollback()
+			return
+		}
+
+		// Reconcile rollover for historic budgets
+		if expense.MonthBudget.Month != time.Now().Format("2006-01") {
+			if err := expense.MonthBudget.Budget.ReconcileRollover(h.db); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to reconcile rollover"})
+				tx.Rollback()
 				return
 			}
-			oldBudget.RollOverAmount -= expense.Amount
-			if err := h.db.Save(&oldBudget).Error; err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update old budget"})
+			if err := newBudget.ReconcileRollover(h.db); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to reconcile rollover"})
+				tx.Rollback()
 				return
 			}
 		}
 
-		// Update new budget
-		var newBudget models.Budget
-		if err := h.db.First(&newBudget, input.BudgetID).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find new budget"})
-			return
-		}
-		newBudget.RollOverAmount += input.Amount
-		if err := h.db.Save(&newBudget).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update new budget"})
-			return
-		}
+		expense.MonthBudget = *newMonthBudget
+		tx.Save(&expense)
 
-		expense.BudgetID = input.BudgetID
+		if err := tx.Commit().Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to commit transaction"})
+			tx.Rollback()
+			return
+		}
 	}
 
 	if input.Amount != 0 {
-		// Update budget amount
-		var budget models.Budget
-		if err := h.db.First(&budget, expense.BudgetID).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find budget"})
-			return
-		}
-		budget.RollOverAmount = budget.RollOverAmount - expense.Amount + input.Amount
-		if err := h.db.Save(&budget).Error; err != nil {
+		// Update budget used amount
+		expense.MonthBudget.UsedAmount += input.Amount - expense.Amount
+		if err := h.db.Save(&expense.MonthBudget).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update budget"})
 			return
 		}
 		expense.Amount = input.Amount
+		if err := h.db.Save(&expense).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update expense"})
+			return
+		}
 	}
 
 	if input.Description != "" {
 		expense.Description = input.Description
+		if err := h.db.Save(&expense).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update expense"})
+			return
+		}
 	}
 
 	if input.Date != "" {
@@ -180,16 +211,52 @@ func (h *Handler) UpdateExpense(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format"})
 			return
 		}
-		expense.Date = date
-	}
 
-	if err := h.db.Save(&expense).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update expense"})
-		return
+		if expense.MonthBudget.Month != date.Format("2006-01") {
+			tx := h.db.Begin()
+			newMonthBudget, err := expense.MonthBudget.Budget.GetOrCreateMonthBudget(h.db, date.Format("2006-01"))
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get or create month budget"})
+				tx.Rollback()
+				return
+			}
+			expense.MonthBudget.UsedAmount -= expense.Amount
+			if err := tx.Save(&expense.MonthBudget).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update old month budget"})
+				tx.Rollback()
+				return
+			}
+			newMonthBudget.UsedAmount += expense.Amount
+			if err := tx.Save(&newMonthBudget).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update new month budget"})
+				tx.Rollback()
+				return
+			}
+			expense.MonthBudget = *newMonthBudget
+
+			// Reconcile rollover for the budget
+			if err := expense.MonthBudget.Budget.ReconcileRollover(h.db); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to reconcile rollover"})
+				tx.Rollback()
+				return
+			}
+
+			tx.Save(&expense)
+			if err := tx.Commit().Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to commit transaction"})
+				tx.Rollback()
+				return
+			}
+		}
+		expense.Date = date
+		if err := h.db.Save(&expense).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update expense"})
+			return
+		}
 	}
 
 	// Load the budget relationship for the response
-	if err := h.db.Model(&expense).Association("Budget").Find(&expense.Budget); err != nil {
+	if err := h.db.Model(&expense).Association("MonthBudget.Budget").Find(&expense.MonthBudget.Budget); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load budget association"})
 		return
 	}
@@ -207,17 +274,18 @@ func (h *Handler) DeleteExpense(c *gin.Context) {
 		return
 	}
 
-	// Update the budget's roll-over amount
-	var budget models.Budget
-	if err := h.db.First(&budget, expense.BudgetID).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find budget"})
+	expense.MonthBudget.UsedAmount -= expense.Amount
+	if err := h.db.Save(&expense.MonthBudget).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update month budget"})
 		return
 	}
 
-	budget.RollOverAmount -= expense.Amount
-	if err := h.db.Save(&budget).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update budget"})
-		return
+	// Reconcile rollover for historic budgets
+	if expense.MonthBudget.Month != time.Now().Format("2006-01") {
+		if err := expense.MonthBudget.Budget.ReconcileRollover(h.db); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to reconcile rollover"})
+			return
+		}
 	}
 
 	if err := h.db.Delete(&expense).Error; err != nil {

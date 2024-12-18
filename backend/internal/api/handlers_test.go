@@ -158,10 +158,9 @@ func TestCreateExpense(t *testing.T) {
 
 	// Create a test budget
 	budget := &models.Budget{
-		UserID: user.ID,
+		UserID: int64(user.ID),
 		Name:   "Groceries",
 		Amount: 500.00,
-		Month:  time.Now().Format("2006-01"),
 	}
 	db.Create(budget)
 
