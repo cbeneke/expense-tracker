@@ -36,7 +36,7 @@ spec:
             {{- toYaml $.Values.postgresql.resources | nindent 12 }}
           volumeMounts:
             - name: postgresql-data
-              mountPath: /var/lib/postgresql/data
+              mountPath: /var/lib/postgresql
       volumes:
         - name: postgresql-data
           {{- if $.Values.postgresql.persistence.enabled }}
