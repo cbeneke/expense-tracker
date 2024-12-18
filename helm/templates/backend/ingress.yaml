@@ -30,25 +30,5 @@ spec:
                 name: {{ $.Release.Name }}-frontend
                 port:
                   name: http
-    - host: {{ . | quote }}
-      http:
-        paths:
-          - path: /auth
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ $.Release.Name }}-backend
-                port:
-                  name: http
-    - host: {{ . | quote }}
-      http:
-        paths:
-          - path: /api
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ $.Release.Name }}-backend
-                port:
-                  name: http
     {{- end }}
 {{- end }} 
