@@ -41,7 +41,8 @@ func GenerateToken(userID uint) (string, error) {
 
 func CreateUser(db *gorm.DB, email, password string) (*models.User, error) {
 	// Check if user already exists
-	if err := db.Where("email = ?", email).First(nil).Error; err == nil {
+	var existingUser models.User
+	if err := db.Where("email = ?", email).First(&existingUser).Error; err == nil {
 		return nil, errors.New("user already exists")
 	}
 
