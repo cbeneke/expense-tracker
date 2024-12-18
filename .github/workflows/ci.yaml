@@ -20,8 +20,12 @@ jobs:
         with:
           filters: |
             backend:
+              - .github/workflows/ci.yaml
+              - .github/workflows/cd.yaml
               - 'backend/**'
             frontend:
+              - .github/workflows/ci.yaml
+              - .github/workflows/cd.yaml
               - 'frontend/**'
 
   backend:
@@ -47,7 +51,9 @@ jobs:
 
       - name: Run backend tests
         working-directory: backend
-        run: go test ./... -v
+        run: |
+          GOOS=linux GOARCH=amd64 go test ./... -v
+          GOOS=linux GOARCH=arm64 go test ./... -v
 
   build-backend:
     needs: [changes, backend]
@@ -59,6 +65,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -67,6 +76,7 @@ jobs:
         with:
           context: ./backend
           push: false
+          platforms: linux/amd64,linux/arm64
           tags: expense-tracker-backend:pr
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -103,6 +113,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -111,6 +124,7 @@ jobs:
         with:
           context: ./frontend
           push: false
+          platforms: linux/amd64,linux/arm64
           tags: expense-tracker-frontend:pr
           cache-from: type=gha
           cache-to: type=gha,mode=max
