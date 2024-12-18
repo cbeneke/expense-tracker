@@ -2,9 +2,9 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: expense-tracker
+  name: {{ $.Release.Name }}
   labels:
-    app.kubernetes.io/name: expense-tracker
+    app.kubernetes.io/name: {{ $.Release.Name }}
     app.kubernetes.io/component: ingress
   annotations:
     {{- toYaml .Values.ingress.annotations | nindent 4 }}

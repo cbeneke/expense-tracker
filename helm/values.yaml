@@ -49,3 +49,35 @@ backend:
     maxReplicas: 10
     targetCPUUtilizationPercentage: 80
     targetMemoryUtilizationPercentage: 80
+
+postgresql:
+  enabled: true # Set to false to use an external database
+
+  image:
+    repository: postgres
+    tag: "16-alpine"
+    pullPolicy: IfNotPresent
+  
+  # Database configuration
+  database: expense_tracker
+  username: postgres
+  password: postgres
+
+  # External database configuration (used when postgresql.enabled is false)
+  external:
+    host: ""
+    port: 5432
+    
+  # Resource configuration for postgres
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+      
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: ""
