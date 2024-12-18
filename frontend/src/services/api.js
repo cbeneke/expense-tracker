@@ -1,17 +1,15 @@
 import axios from 'axios';
 import { env } from './env';
 
-const API_URL = env.REACT_APP_API_URL;
-
 const api = axios.create({
-    baseURL: `${API_URL}/api`,
+    baseURL: `${env.API_URL}/api`,
     headers: {
         'Content-Type': 'application/json',
     },
 });
 
 const authApi = axios.create({
-    baseURL: `${API_URL}/auth`,
+    baseURL: `${env.API_URL}/auth`,
     headers: {
         'Content-Type': 'application/json',
     },

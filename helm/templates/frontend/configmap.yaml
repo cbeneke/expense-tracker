@@ -8,5 +8,5 @@ metadata:
 data:
   env.js: |
     window.env = {
-      REACT_APP_API_URL: "{{ $.Values.ingress.host }}"
+      "API_URL": "{{ $.Values.ingress.host }}"
     }
