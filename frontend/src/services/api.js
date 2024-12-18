@@ -1,15 +1,14 @@
 import axios from 'axios';
-import { env } from './env';
 
 const api = axios.create({
-    baseURL: `${env.API_URL}/api`,
+    baseURL: `/api`,
     headers: {
         'Content-Type': 'application/json',
     },
 });
 
 const authApi = axios.create({
-    baseURL: `${env.API_URL}/auth`,
+    baseURL: `/auth`,
     headers: {
         'Content-Type': 'application/json',
     },

@@ -26,11 +26,3 @@ spec:
               containerPort: 80
           resources:
             {{- toYaml $.Values.frontend.resources | nindent 12 }}
-          volumeMounts:
-            - name: config
-              mountPath: /usr/share/nginx/html/env.js
-              subPath: env.js
-      volumes:
-        - name: config
-          configMap:
-            name: {{ $.Release.Name }}-frontend
