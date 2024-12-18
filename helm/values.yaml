@@ -12,7 +12,7 @@ ingress:
 
 frontend:
   image:
-    repository: expense-tracker-frontend
+    repository: cbeneke/expense-tracker-frontend
     tag: latest
     pullPolicy: IfNotPresent
   replicaCount: 2
@@ -32,7 +32,7 @@ frontend:
 
 backend:
   image:
-    repository: expense-tracker-backend
+    repository: cbeneke/expense-tracker-backend
     tag: latest
     pullPolicy: IfNotPresent
   replicaCount: 2
